@@ -4,6 +4,7 @@ dns.setServers(['8.8.8.8', '1.1.1.1']);
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import userRouter from './routers/userRouter.js';
 dotenv.config();
 
 const app = express();
@@ -22,10 +23,7 @@ mongoose.connect(mongoURI).then(
 
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    console.log('Received request at ');
-    res.send('Hello, World!');
-});
+app.use('/users', userRouter)
 
 
 app.listen(3000, (req, res) => {
