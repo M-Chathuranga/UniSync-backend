@@ -5,6 +5,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRouter from './routers/userRouter.js';
+import authenticateUser from './middlewares/authentication.js';
 dotenv.config();
 
 const app = express();
@@ -22,6 +23,8 @@ mongoose.connect(mongoURI).then(
 )   
 
 app.use(express.json());
+
+app.use(authenticateUser);
 
 app.use('/users', userRouter)
 
