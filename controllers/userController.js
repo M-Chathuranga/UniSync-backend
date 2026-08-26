@@ -2,6 +2,8 @@ import User from "../models/user.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+// User Registration
+
 async function createUser(req,res) {
     try{
         console.log("REQ BODY:", req.body);
@@ -34,6 +36,8 @@ async function createUser(req,res) {
     };
     
 }
+
+// User Login
 
 async function loginUser(req, res) {
 
