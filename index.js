@@ -5,6 +5,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRouter from './routers/userRouter.js';
+import router from './routers/fixedExpenseRouter.js';
 import authenticateUser from './middlewares/authentication.js';
 dotenv.config();
 
@@ -26,7 +27,8 @@ app.use(express.json());
 
 app.use(authenticateUser);
 
-app.use('/users', userRouter)
+app.use('/users', userRouter);
+app.use('/fixedexpenses', router);
 
 
 app.listen(3000, (req, res) => {
