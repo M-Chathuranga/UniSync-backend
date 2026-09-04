@@ -6,8 +6,10 @@ import jwt from "jsonwebtoken";
 
 async function createUser(req,res) {
     try{
-        console.log("REQ BODY:", req.body);
+        console.log("REQ BODY:", req.body);   // Log the incoming request body for debugging
+
         const passwordHash = bcrypt.hashSync(req.body.password, 10);
+
         const newUser = new User(
             {
                 email : req.body.email,
@@ -19,7 +21,7 @@ async function createUser(req,res) {
 
         await newUser.save()
 
-        res.json({
+        res.status(201).json({
             message: "User created successfully"
         })
 
@@ -27,7 +29,7 @@ async function createUser(req,res) {
 
 
     }catch (err) {
-        res.json({
+        res.status(500).json({
             message : "Error Creating User"
         })
 
@@ -59,22 +61,22 @@ async function loginUser(req, res) {
             if(isPasswordCorrect){
 
                 const payload = {
+                    id: user._id,
                     email: user.email,
                     firstName: user.firstName,
                     lastName: user.lastName,
-                    isBlocked: user.isBlocked,
                     isEmailVerified: user.isEmailVerified,
                     Image: user.image
                 }
 
-                const token = jwt.sign(payload, "I-CoMputers",
+                const token = jwt.sign(payload, process.env.JWT_SECRET,
                     {   //48 hours
                         expiresIn: "48h"
                     }
                 );
 
-                res.json({
-                   
+                res.status(200).json({
+                    message: "User logged in successfully",
                     token: token
                 })
 

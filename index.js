@@ -4,9 +4,12 @@ dns.setServers(['8.8.8.8', '1.1.1.1']);
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import userRouter from './routers/userRouter.js';
 import router from './routers/fixedExpenseRouter.js';
 import authenticateUser from './middlewares/authentication.js';
+
+// Load environment variables
 dotenv.config();
 
 const app = express();
@@ -21,13 +24,15 @@ mongoose.connect(mongoURI).then(
     (error) => {
         console.error('Error connecting to MongoDB:', error);
     }
-)   
+);  
+
+// Enable CORS and allow requests from React Native
+app.use(cors());
 
 app.use(express.json());
 
-app.use(authenticateUser);
-
 app.use('/users', userRouter);
+app.use(authenticateUser);
 app.use('/fixedexpenses', router);
 
 
