@@ -7,11 +7,17 @@ import dotenv from 'dotenv';
 import userRouter from './routers/userRouter.js';
 import router from './routers/fixedExpenseRouter.js';
 import authenticateUser from './middlewares/authentication.js';
+import budgetRouter from './routers/budgetRoutes.js';
 dotenv.config();
 
 const app = express();
 const mongoURI = process.env.MONGODB_URI;
+// 1. JSON request body eka read karaganna me line eka ekathu karanna
+app.use(express.json());
 
+// 2. Routers tika backend ekata connect karanna
+app.use('/api/users', userRouter);
+app.use('/api/expenses', budgetRouter);
 
 mongoose.connect(mongoURI).then(
 () => {
@@ -29,6 +35,8 @@ app.use(authenticateUser);
 
 app.use('/users', userRouter);
 app.use('/fixedexpenses', router);
+
+app.use('/budgets', budgetRouter);
 
 
 app.listen(3000, (req, res) => {
