@@ -8,12 +8,8 @@ import cors from 'cors';
 import userRouter from './routers/userRouter.js';
 import router from './routers/fixedExpenseRouter.js';
 import authenticateUser from './middlewares/authentication.js';
-<<<<<<< HEAD
-
-// Load environment variables
-=======
 import budgetRouter from './routers/budgetRoutes.js';
->>>>>>> fecdece7f05d34c1b2dcc3aab3f098ece13ee384
+
 dotenv.config();
 
 const app = express();
