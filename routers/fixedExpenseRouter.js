@@ -1,9 +1,9 @@
 import express from 'express';
 import { addFixedExpense, getSafeDailyLimit } from '../controllers/fixedExpenseController.js';
 
-const router = express.Router();
+const fixedExpenseRouter = express.Router();
 
-router.post('/add', addFixedExpense);
-router.post('/calculate-limit', getSafeDailyLimit);
+fixedExpenseRouter.post('/add', addFixedExpense);
+fixedExpenseRouter.post('/calculate-limit', getSafeDailyLimit);
 
-export default router;
+export default fixedExpenseRouter;

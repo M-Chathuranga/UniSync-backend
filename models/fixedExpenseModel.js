@@ -2,7 +2,8 @@ import mongoose from 'mongoose';
 
 const fixedExpenseSchema = new mongoose.Schema({
     userId: {
-        type: String,
+       type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
         required: true
     },
     title: {
@@ -15,4 +16,5 @@ const fixedExpenseSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-export default mongoose.model('FixedExpense', fixedExpenseSchema);
+const FixedExpense = mongoose.model('FixedExpense', fixedExpenseSchema);
+export default FixedExpense;
