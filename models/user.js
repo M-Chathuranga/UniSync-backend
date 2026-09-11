@@ -44,7 +44,11 @@ const userSchema = new mongoose.Schema(
             voiceLogging : {
                 type: Boolean,
                 default: true   // to voice input toggle
-            }            
+            },
+            appearance : {
+                type : String,
+                default : "light",  // light or dark mode
+            }           
         },       
     },
     

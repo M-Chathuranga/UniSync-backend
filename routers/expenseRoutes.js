@@ -1,9 +1,14 @@
 import express from 'express';
-import { addDailyExpense, getDailyExpenses } from '../controllers/dailyExpenseController.js';
+import { addExpense, getExpenses , addVoiceExpense, getCategoryExpenseSummary, getMonthlyExpenseSummary} from '../controllers/expenseController.js';
 
-const router = express.Router();
+const expenseRouter = express.Router();
 
-router.post('/add', addDailyExpense);
-router.get('/:userId', getDailyExpenses);
 
-export default router;
+
+expenseRouter.post('/add', addExpense);
+expenseRouter.post("/voice", addVoiceExpense); // Voice Logging Endpoint
+expenseRouter.get('/', getExpenses);
+expenseRouter.get('/summary/category', getCategoryExpenseSummary);
+expenseRouter.get('/summary/monthly', getMonthlyExpenseSummary);
+
+export default expenseRouter;
