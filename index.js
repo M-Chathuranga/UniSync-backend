@@ -5,21 +5,31 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
+
+import authRouter from './routers/authRoutes.js';
 import userRouter from './routers/userRouter.js';
-import router from './routers/fixedExpenseRouter.js';
+import expenseRouter from './routers/expenseRoutes.js';
+import categoryRouter from './routers/categoryRoutes.js';
+import fixedExpenseRouter from './routers/fixedExpenseRouter.js';
+import notificationRouter from './routers/notificationRoutes.js';
+import dashboardRouter from './routers/dashboardRouter.js';
+import settingRouter from './routers/settingRouter.js';
+
+
 import authenticateUser from './middlewares/authentication.js';
-import budgetRouter from './routers/budgetRoutes.js';
+
+
+
+
 
 dotenv.config();
 
 const app = express();
-const mongoURI = process.env.MONGODB_URI;
-// 1. JSON request body eka read karaganna me line eka ekathu karanna
-app.use(express.json());
 
-// 2. Routers tika backend ekata connect karanna
-app.use('/api/users', userRouter);
-app.use('/api/expenses', budgetRouter);
+const mongoURI = process.env.MONGODB_URI;
+const port = process.env.PORT ;
+
+
 
 mongoose.connect(mongoURI).then(
 () => {
@@ -36,13 +46,21 @@ app.use(cors());
 
 app.use(express.json());
 
-app.use('/users', userRouter);
+
+app.use('/auth', authRouter); // Use the authRouter for authentication routes
 app.use(authenticateUser);
-app.use('/fixedexpenses', router);
 
-app.use('/budgets', budgetRouter);
+app.use('/users', userRouter);
+app.use('/fixedexpenses', fixedExpenseRouter);
+app.use('/expenses', expenseRouter);
+app.use('/categories', categoryRouter);
+app.use('/notifications', notificationRouter);
+app.use('/dashboard', dashboardRouter);
+app.use('/settings', settingRouter);
 
 
-app.listen(3000, (req, res) => {
-    console.log('Server is running on port 3000');
+
+
+app.listen(port, (req, res) => {
+    console.log(`Server is running on port ${port}`);
 });
