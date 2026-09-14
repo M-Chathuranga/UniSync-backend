@@ -7,13 +7,13 @@ import User from "../models/user.js";
 // ==========================================
 export const addExpense = async (req, res) => {
     try {
-        const { title, amount, category } = req.body;
+        const { title, amount, categoryId } = req.body;
         
         // Ensure user ID is securely taken from the authenticated token
         const userId = req.user.id; 
 
         // Create new expense record
-        const newExpense = new Expense({ userId, title, amount, category });
+        const newExpense = new Expense({ userId, title, amount, categoryId });
         await newExpense.save();
 
         res.status(201).json({ 
