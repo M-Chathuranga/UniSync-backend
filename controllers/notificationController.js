@@ -5,12 +5,13 @@ import Notification from "../models/Notification.js";
 // ==========================================
 export const getNotifications = async (req, res) => {
     try {
+        // Get the authenticated user's ID from the JWT token
         const userId = req.user.id;
 
-        // Fetch notifications from database and sort by newest first
+        // Fetch only THIS user's notifications, sorted newest first
         const notifications = await Notification.find({ userId }).sort({ createdAt: -1 });
 
-        // Return 200 Success with data
+        // Return 200 Success with the notifications array
         res.status(200).json(notifications);
     } catch (error) {
         console.error("Error fetching notifications:", error);
@@ -24,22 +25,24 @@ export const getNotifications = async (req, res) => {
 export const markAsRead = async (req, res) => {
     try {
         const { notificationId } = req.params;
+        const userId = req.user.id; // Secure: only the owner can mark their notification
 
-        // Update the isRead field to true
-        const updatedNotification = await Notification.findByIdAndUpdate(
-            notificationId,
-            { isRead: true },
-            { new: true } // Return updated document
-        );
+        // Find the notification AND verify it belongs to the logged-in user
+        const notification = await Notification.findOne({ _id: notificationId, userId });
 
-        if (!updatedNotification) {
+        if (!notification) {
+            // Return 404 if not found OR if it belongs to another user (data isolation)
             return res.status(404).json({ message: "Notification not found" });
         }
 
-        // Return 200 Success
+        // Update the isRead field to true
+        notification.isRead = true;
+        await notification.save();
+
+        // Return 200 Success with updated document
         res.status(200).json({
             message: "Notification marked as read",
-            data: updatedNotification
+            data: notification
         });
     } catch (error) {
         console.error("Error updating notification status:", error);
@@ -53,11 +56,16 @@ export const markAsRead = async (req, res) => {
 export const deleteNotification = async (req, res) => {
     try {
         const { notificationId } = req.params;
+        const userId = req.user.id; // Secure: only the owner can delete their notification
 
-        // Find the notification and delete it
-        const deletedNotification = await Notification.findByIdAndDelete(notificationId);
+        // Find AND delete only if the notification belongs to the logged-in user
+        const deletedNotification = await Notification.findOneAndDelete({
+            _id: notificationId,
+            userId  // Strict data isolation: prevents deleting another user's notification
+        });
 
         if (!deletedNotification) {
+            // Return 404 if not found OR if it belongs to another user
             return res.status(404).json({ message: "Notification not found" });
         }
 
