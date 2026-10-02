@@ -2,103 +2,145 @@ import User from "../models/user.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-// User Registration
 
-async function createUser(req,res) {
-    try{
-        console.log("REQ BODY:", req.body);   // Log the incoming request body for debugging
+//  User Registration
 
-        const passwordHash = bcrypt.hashSync(req.body.password, 10);
+async function createUser(req, res) {
+  try {
+    // Log incoming payload for debugging
+    // console.log("REQ BODY:", req.body);
 
-        const newUser = new User(
-            {
-                email : req.body.email,
-                firstName : req.body.firstName,
-                lastName : req.body.lastName,
-                password : passwordHash
-            }
-        );
+    const { email, firstName, lastName, password } = req.body;
 
-        await newUser.save()
+    // Input Validation
+    if (!email || !firstName || !lastName || !password) {
+      return res.status(400).json({
+        message: "Please provide firstName, lastName, email, and password",
+      });
+    }
 
-        res.status(201).json({
-            message: "User created successfully"
-        })
+    // Sanitize email
+    const cleanEmail = email.trim().toLowerCase();
 
-        console.log("User created")
+    // Check if a user with this email already exists in MongoDB
+    const existingUser = await User.findOne({ email: cleanEmail });
+    if (existingUser) {
+      return res.status(400).json({
+        message: "User with this email already exists",
+      });
+    }
 
+    // Hash the password 
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    }catch (err) {
-        res.status(500).json({
-            message : "Error Creating User"
-        })
-
-        console.log(err)
-
-    };
     
+    const newUser = new User({
+      email: cleanEmail,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      password: passwordHash,
+    });
+
+    
+    await newUser.save();
+
+    console.log("User created successfully:", newUser.email);
+
+    
+    return res.status(201).json({
+      message: "User created successfully",
+      user: {
+        id: newUser._id,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        email: newUser.email,
+      },
+    });
+
+  } catch (err) {
+    console.error("Error Creating User:", err);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: err.message,
+    });
+  }
 }
 
-// User Login
+
+// User Login 
 
 async function loginUser(req, res) {
-
-    try{
-        const user = await User.findOne({ 
-            email: req.body.email 
-        });
+  try {
+    const { email, password } = req.body;
 
     
-        console.log(user);
-
-        if(user == null){
-            res.status(404).json({
-                message: "User not found"
-                
-            })
-        }else{
-            const isPasswordCorrect = bcrypt.compareSync(req.body.password, user.password);
-            if(isPasswordCorrect){
-
-                const payload = {
-                    id: user._id,
-                    email: user.email,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    isEmailVerified: user.isEmailVerified,
-                    Image: user.image
-                }
-
-                const token = jwt.sign(payload, process.env.JWT_SECRET,
-                    {   //48 hours
-                        expiresIn: "48h"
-                    }
-                );
-
-                res.status(200).json({
-                    message: "User logged in successfully",
-                    token: token
-                })
-
-                console.log("User logged in successfully");
-                
-
-
-            }else{
-                res.status(401).json({
-                    message: "Invalid password"
-                })
-            }
-        }
-
-
-    }catch (error) {
-        res.status(500).json(
-            {
-                message: "Error logging in user",
-            }
-        )
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Please enter both email and password",
+      });
     }
+
+    
+    const cleanEmail = email.trim().toLowerCase();
+
+  
+    const user = await User.findOne({ email: cleanEmail });
+
+    
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    // Compare the provided plain-text password against the stored bcrypt hash
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordCorrect) {
+      
+      return res.status(401).json({
+        message: "Invalid password",
+      });
+    }
+
+    
+    const payload = {
+      id: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      isEmailVerified: user.isEmailVerified,
+    };
+
+    // Sign the JWT — valid for 48 hours
+    const token = jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: "48h" }
+    );
+
+    console.log("User logged in successfully:", user.email);
+
+    
+    return res.status(200).json({
+      message: "User logged in successfully",
+      token: token,
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error logging in user:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
 }
 
 export { createUser, loginUser };

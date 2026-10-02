@@ -57,25 +57,20 @@ export const addVoiceExpense = async (req, res) => {
         const userId = req.user.id;
         const { voiceText } = req.body;
 
+        // 1. Validate that voice text was provided
         if (!voiceText) {
             return res.status(400).json({
                 message: "Voice transcript text is required."
             });
         }
 
-        // 1. Check user preferences to see if voice logging is enabled
+        // 2. Verify the user exists in the database
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: "User not found." });
         }
 
-        if (!user.preferences?.voiceLogging) {
-            return res.status(400).json({
-                message: "Voice logging feature is disabled in your user settings."
-            });
-        }
-
-        // 2. Extract numeric amount from string using regex
+        // 3. Extract numeric amount from transcribed string using regex
         const amountMatch = voiceText.match(/\d+/);
         const amount = amountMatch ? parseFloat(amountMatch[0]) : null;
 
@@ -85,30 +80,35 @@ export const addVoiceExpense = async (req, res) => {
             });
         }
 
-        // 3. Extract title from text by removing keywords and numbers
+        // 4. Extract title by stripping amount and filler words from text
         const title = voiceText
             .replace(/\d+/g, '')
             .replace(/(spent|rupees|rs|for|on|bought)/gi, '')
             .trim() || "Voice Expense";
 
-        // 4. Basic keyword matching for auto-categorization
-        let category = "General";
+        // 5. Auto-categorize by keyword matching
+        let category = "Other";
         const lowerText = voiceText.toLowerCase();
 
-        if (lowerText.includes("lunch") || lowerText.includes("dinner") || lowerText.includes("food") || lowerText.includes("tea")) {
+        if (lowerText.includes("lunch") || lowerText.includes("dinner") || lowerText.includes("food") || lowerText.includes("tea") || lowerText.includes("canteen")) {
             category = "Food";
-        } else if (lowerText.includes("bus") || lowerText.includes("train") || lowerText.includes("cab") || lowerText.includes("fuel")) {
+        } else if (lowerText.includes("bus") || lowerText.includes("train") || lowerText.includes("cab") || lowerText.includes("fuel") || lowerText.includes("fare")) {
             category = "Transport";
-        } else if (lowerText.includes("bill") || lowerText.includes("wifi") || lowerText.includes("reload")) {
-            category = "Utilities";
+        } else if (lowerText.includes("boarding") || lowerText.includes("rent") || lowerText.includes("hostel")) {
+            category = "Boarding";
+        } else if (lowerText.includes("book") || lowerText.includes("study") || lowerText.includes("photocopy") || lowerText.includes("print")) {
+            category = "Study";
+        } else if (lowerText.includes("doctor") || lowerText.includes("medicine") || lowerText.includes("pharmacy")) {
+            category = "Medical";
         }
 
-        // 5. Create and save new expense
+        // 6. Create and save the voice expense with isVoiceEntry flag set to true
         const newVoiceExpense = new Expense({
             userId,
             title,
             amount,
-            category
+            category,
+            isVoiceEntry: true  // Flag this record as a voice-logged expense
         });
 
         await newVoiceExpense.save();
