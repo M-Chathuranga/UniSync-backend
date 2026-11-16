@@ -1,4 +1,6 @@
 import User from "../models/user.js";
+import Expense from "../models/expense.js";
+import Category from "../models/category.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -143,4 +145,44 @@ async function loginUser(req, res) {
   }
 }
 
-export { createUser, loginUser };
+// Delete User Account
+
+async function deleteUser(req, res) {
+  try {
+    const userId = req.user.id;
+    
+
+    // is user in database
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+    
+    // delete all user Expenses and Categories
+    await Promise.all([
+      Expense.deleteMany({ userId }),
+      Category.deleteMany({ userId }),
+    ]);
+
+  
+    // delete
+    await User.findByIdAndDelete(userId);
+
+    console.log("User account and data deleted successfully:", user.email);
+
+    return res.status(200).json({
+      message: "User account and all associated data deleted successfully",
+    });
+
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+}
+
+export { createUser, loginUser, deleteUser  };        
