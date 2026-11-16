@@ -38,5 +38,31 @@ async function getCategories  (req, res)  {
     }
 };
     
+// Delete a custom category
+async function deleteCategory(req, res) {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
 
-export { createCategory, getCategories };
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid category ID." });
+        }
+
+        
+        const deletedCategory = await Category.findOneAndDelete({ _id: id, userId });
+
+        if (!deletedCategory) {
+            return res.status(404).json({ message: "Category not found or unauthorized." });
+        }
+
+        res.status(200).json({
+            message: "Category deleted successfully",
+            id
+        });
+    } catch (error) {
+        console.error("Error deleting category:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export { createCategory, getCategories, deleteCategory };
