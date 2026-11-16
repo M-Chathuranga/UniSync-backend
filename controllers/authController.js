@@ -1,6 +1,6 @@
 import User from "../models/user.js";
-import Expense from "../models/expense.js";
-import Category from "../models/category.js";
+import Expense from "../models/Expense.js";
+import Category from "../models/Category.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
