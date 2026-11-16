@@ -45,32 +45,6 @@ mongoose.connect(mongoURI).then(
 app.use(cors());
 
 app.use(express.json());
-
-// Global Middleware: Log all incoming HTTP requests to console for debugging
-app.use((req, res, next) => {
-  console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
-  next();
-});
-
-// Root API Health Check Route
-app.get('/', (req, res) => {
-  return res.status(200).json({ message: 'UniSync Backend API is active and running' });
-});
-
-
-app.use('/auth', authRouter); // Use the authRouter for authentication routes
-app.use('/api/auth', authRouter); // Additional fallback mapping for mobile requests
-app.use(authenticateUser);
-
-app.use('/users', userRouter);
-app.use('/fixedexpenses', fixedExpenseRouter);
-app.use('/expenses', expenseRouter);
-app.use('/categories', categoryRouter);
-app.use('/notifications', notificationRouter);
-app.use('/dashboard', dashboardRouter);
-app.use('/settings', settingRouter);
-
-
 // ==========================================
 // Google Play Store Compliance Pages
 // ==========================================
@@ -176,6 +150,33 @@ app.get('/delete-account-info', (req, res) => {
     </html>
   `);
 });
+
+// Global Middleware: Log all incoming HTTP requests to console for debugging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+// Root API Health Check Route
+app.get('/', (req, res) => {
+  return res.status(200).json({ message: 'UniSync Backend API is active and running' });
+});
+
+
+app.use('/auth', authRouter); // Use the authRouter for authentication routes
+app.use('/api/auth', authRouter); // Additional fallback mapping for mobile requests
+app.use(authenticateUser);
+
+app.use('/users', userRouter);
+app.use('/fixedexpenses', fixedExpenseRouter);
+app.use('/expenses', expenseRouter);
+app.use('/categories', categoryRouter);
+app.use('/notifications', notificationRouter);
+app.use('/dashboard', dashboardRouter);
+app.use('/settings', settingRouter);
+
+
+
 
 app.listen(3000, '0.0.0.0', () => {
   console.log('Server is running on port 3000');
