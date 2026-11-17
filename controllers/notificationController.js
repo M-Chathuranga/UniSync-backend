@@ -1,6 +1,36 @@
 import Notification from "../models/Notification.js";
 
 // ==========================================
+// Create a new notification for logged-in user
+// ==========================================
+export const createNotification = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { title, message, type } = req.body;
+
+        if (!title || !message) {
+            return res.status(400).json({ message: "Title and message are required" });
+        }
+
+        const newNotification = await Notification.create({
+            userId,
+            title,
+            message,
+            type: type || "warning",
+            isRead: false
+        });
+
+        res.status(201).json({
+            message: "Notification created successfully",
+            data: newNotification
+        });
+    } catch (error) {
+        console.error("Error creating notification:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// ==========================================
 // Get all notifications for logged-in user
 // ==========================================
 export const getNotifications = async (req, res) => {
