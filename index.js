@@ -15,44 +15,47 @@ import notificationRouter from './routers/notificationRoutes.js';
 import dashboardRouter from './routers/dashboardRouter.js';
 import settingRouter from './routers/settingRouter.js';
 
-
 import authenticateUser from './middlewares/authentication.js';
-
-
-
-
 
 dotenv.config();
 
 const app = express();
 
 const mongoURI = process.env.MONGODB_URI;
-const port = process.env.PORT ;
+const port = process.env.PORT || 3000;
 
-
-
-mongoose.connect(mongoURI).then(
-() => {
+mongoose
+  .connect(mongoURI)
+  .then(() => {
     console.log('Connected to MongoDB');
-}
-).catch(
-    (error) => {
-        console.error('Error connecting to MongoDB:', error);
-    }
-);  
+  })
+  .catch((error) => {
+    console.error('Error connecting to MongoDB:', error);
+  });
 
-// Enable CORS and allow requests from React Native
+// Enable CORS and JSON parsing
 app.use(cors());
-
 app.use(express.json());
+
+// Global Middleware: Log all incoming HTTP requests
+app.use((req, res, next) => {
+  console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+// Root API Health Check Route
+app.get('/', (req, res) => {
+  return res.status(200).json({ message: 'Smart Finance Backend API is active and running' });
+});
+
 // ==========================================
-// Google Play Store Compliance Pages
+// Google Play Store Public Compliance Pages
 // ==========================================
 
 // 1. Public Privacy Policy Page (GET /privacy-policy)
 app.get('/privacy-policy', (req, res) => {
   res.setHeader('Content-Type', 'text/html');
-  res.send(`
+  return res.status(200).send(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -110,7 +113,7 @@ app.get('/privacy-policy', (req, res) => {
 // 2. Public Account Deletion Information Page (GET /delete-account-info)
 app.get('/delete-account-info', (req, res) => {
   res.setHeader('Content-Type', 'text/html');
-  res.send(`
+  return res.status(200).send(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -151,20 +154,15 @@ app.get('/delete-account-info', (req, res) => {
   `);
 });
 
-// Global Middleware: Log all incoming HTTP requests to console for debugging
-app.use((req, res, next) => {
-  console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
-  next();
-});
+// ==========================================
+// Public Authentication Routes
+// ==========================================
+app.use('/auth', authRouter);
+app.use('/api/auth', authRouter);
 
-// Root API Health Check Route
-app.get('/', (req, res) => {
-  return res.status(200).json({ message: 'UniSync Backend API is active and running' });
-});
-
-
-app.use('/auth', authRouter); // Use the authRouter for authentication routes
-app.use('/api/auth', authRouter); // Additional fallback mapping for mobile requests
+// ==========================================
+// Protected Routes (Requires Auth Token)
+// ==========================================
 app.use(authenticateUser);
 
 app.use('/users', userRouter);
@@ -175,9 +173,6 @@ app.use('/notifications', notificationRouter);
 app.use('/dashboard', dashboardRouter);
 app.use('/settings', settingRouter);
 
-
-
-
-app.listen(3000, '0.0.0.0', () => {
-  console.log('Server is running on port 3000');
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server is running on port ${port}`);
 });
